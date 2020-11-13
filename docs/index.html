@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>图形化操作快速生成项目目录结构树</title>
+    <link rel="icon" href="https://zuhaowan.zuhaowan.com/static/www3.0/nostar-games/common/img/icon.jpg">
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/ionicons@^4.0.0/dist/css/ionicons.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/quasar@1.14.1/dist/quasar.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <style>
+      [v-cloak] {
+        display: none;
+      }
+      .nstree {
+        transition: background 0.3s;
+      }
+      .tree-title {
+        width: 100%;
+      }
+      .import-json {
+        position: relative;
+        display: inline-block;
+      }
+      .import-json input {
+        opacity: 0;
+        visibility: hidden;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        left: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="q-app">
+      <div
+        class="nstree q-pa-md"
+        :class="{
+        'bg-grey-10 text-white': darkMode
+      }"
+      >
+        <div class="row justify-between items-center">
+          <h3 v-cloak>
+            {{nstree.name}}
+            <q-popup-edit
+              v-model="nstree.name"
+              content-class="bg-accent text-white"
+              @hide="editName"
+            >
+              <q-input
+                dark
+                color="white"
+                v-model="nstree.name"
+                dense
+                autofocus
+                counter
+              >
+                <template v-slot:prepend>
+                  <q-icon name="edit" />
+                </template>
+              </q-input>
+            </q-popup-edit>
+          </h3>
+
+          <div>
+            <q-toggle
+              color="blue"
+              :label="expandAll ? '全部收起' : '全部展开'"
+              v-model="expandAll"
+              :dark="darkMode"
+              left-label
+              @input="changeExpandAll"
+            ></q-toggle>
+            <q-toggle
+              color="blue"
+              label="显示文件图标"
+              v-model="showFileIcon"
+              :dark="darkMode"
+              left-label
+            ></q-toggle>
+            <q-toggle
+              color="blue"
+              label="手风琴模式"
+              v-model="accordion"
+              :dark="darkMode"
+              left-label
+            ></q-toggle>
+            <q-toggle
+              color="blue"
+              label="暗色模式"
+              v-model="darkMode"
+              :dark="darkMode"
+              left-label
+            ></q-toggle>
+          </div>
+        </div>
+        <div class="tree q-pa-md q-gutter-sm" v-cloak>
+          <div class="row items-center">
+            <div class="col">
+              <q-input
+                v-model="search"
+                label="在此输入可检索名称或者注释......"
+                :dark="darkMode"
+                clearable
+                debounce="500"
+                class="q-ml-md"
+                :hint="`提示：右击目录或文件可进行编辑。${inVscode ? '' : '请使用chrome等现代浏览器访问！'}`"
+              ></q-input>
+            </div>
+            <div class="col text-right q-gutter-sm">
+              <q-btn
+                color="red"
+                label="检测无效路径"
+                @click="getUnlessPath"
+                icon="ion-construct"
+              ></q-btn>
+              <q-btn
+                color="primary"
+                label="导出为md格式"
+                @click="exportMd"
+              ></q-btn>
+              <q-btn
+                color="primary"
+                label="导出为json格式"
+                @click="exportJson"
+                v-if="!inVscode"
+              ></q-btn>
+              <q-btn
+                color="primary"
+                label="从json中导入"
+                v-if="!inVscode"
+                class="import-json"
+                @click="importJson"
+                ><input type="file" ref="file" accept=".json"
+              /></q-btn>
+            </div>
+          </div>
+
+          <q-tree
+            :nodes="qtree"
+            node-key="path"
+            default-expand-all
+            :dark="darkMode"
+            :accordion="accordion"
+            ref="qtree"
+            :filter="search"
+            :filter-method="filterQtree"
+            v-if="treeNeedUpdate"
+          >
+            <template v-slot:default-header="prop">
+              <div
+                class="row items-center tree-title"
+                :class="darkMode ? '': 'text-primary'"
+              >
+                <div class="tree-name" :class="{'text-bold': prop.node.bold}">
+                  <q-icon
+                    v-if="showFileIcon && getFileType(prop.node.name)"
+                    :name="getFileType(prop.node.name)"
+                  ></q-icon>
+                  {{ prop.node.name }}
+                </div>
+                <div class="tree-body q-ml-sm text-grey" v-if="prop.node.body">
+                  <span>{{ prop.node.body }}</span>
+                </div>
+                <q-menu
+                  touch-position
+                  context-menu
+                  :dark="darkMode"
+                  v-if="prop.node.path !== '/'"
+                >
+                  <q-list dense style="min-width: 100px">
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="openNode(prop.node)"
+                    >
+                      <q-item-section>打开该节点文件</q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="editNode(prop.node)"
+                    >
+                      <q-item-section>编辑该节点信息</q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="copyNode(prop.node)"
+                    >
+                      <q-item-section>复制该节点路径</q-item-section>
+                    </q-item>
+                    <q-separator :dark="darkMode"></q-separator>
+                    <q-item clickable v-close-popup @click="delNode(prop.node)">
+                      <q-item-section>删除该节点</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </div>
+            </template>
+            <template v-slot:default-body="prop">
+              <div v-if="false && prop.node.body">
+                <span>{{ prop.node.body }}</span>
+              </div>
+            </template>
+          </q-tree>
+        </div>
+        <q-dialog
+          v-model="editing"
+          no-backdrop-dismiss
+          transition-show="flip-down"
+          transition-hide="flip-up"
+        >
+          <q-card style="width: 520px">
+            <!-- <q-card-section @click="copyNode(form)" v-if="false"
+              >当前选中路径为：<q-badge color="blue">
+                {{ form.path }}
+              </q-badge></q-card-section
+            > -->
+            <q-card-section
+              class="q-pa-md q-gutter-y-md column"
+              @keydown.enter.prevent.stop="editNodeConfirm"
+            >
+              <q-input
+                v-model="form.path"
+                label="当前文件(夹)名称"
+                disable
+              ></q-input>
+              <q-input
+                v-model="form.body"
+                clearable
+                label="当前文件(夹)名称的描述"
+                autoFocus
+                autogrow
+              ></q-input>
+              <q-input
+                v-model.number="form.index"
+                type="number"
+                label="该字段在目录下排序，越小越靠前"
+              ></q-input>
+              <q-toggle
+                color="blue"
+                label="是否强调显示"
+                v-model="form.bold"
+              ></q-toggle>
+            </q-card-section>
+            <q-card-actions align="center">
+              <q-btn flat label="取消" v-close-popup></q-btn>
+              <q-btn
+                flat
+                label="确认保存(Enter)"
+                color="primary"
+                @click="editNodeConfirm"
+                class="text-capitalize"
+                v-close-popup
+              ></q-btn>
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+        <q-dialog
+          v-if="!inVscode"
+          v-model="showDemo"
+          transition-show="flip-down"
+          transition-hide="flip-up"
+        >
+          <q-card style="width: 1200px; max-width: 1200px">
+            <q-card-section
+              ><q-img
+                :src="demoImgServer + demoImg + '.png'"
+                spinner-color="white"
+              >
+              <div class="absolute-bottom text-subtitle1 text-center">
+                效果动图为apng，请使用chrome等浏览器访问
+              </div>
+              </q-img
+            ></q-card-section>
+          </q-card>
+        </q-dialog>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@^2.0.0/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quasar@1.14.1/dist/quasar.umd.modern.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quasar@1.14.1/dist/lang/zh-hans.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="./edit-doc.js"></script>
+  </body>
+</html>

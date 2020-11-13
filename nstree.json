@@ -1,0 +1,119 @@
+{
+  "name": "nstree",
+  "tree": [
+    {
+      "name": "src",
+      "body": "插件源代码",
+      "index": 0,
+      "bold": false,
+      "path": "src",
+      "children": [
+        {
+          "name": "editProjectDoc.js",
+          "body": "编辑目录结构相关的方法",
+          "index": 9,
+          "bold": false,
+          "path": "src/editProjectDoc.js",
+          "children": []
+        },
+        {
+          "name": "extension.js",
+          "body": "插件的js入口文件",
+          "index": 9,
+          "bold": false,
+          "path": "src/extension.js",
+          "children": []
+        },
+        {
+          "name": "getCurrentPath.js",
+          "body": "获取当前文件路径的方法",
+          "index": 9,
+          "bold": false,
+          "path": "src/getCurrentPath.js",
+          "children": []
+        },
+        {
+          "name": "util.js",
+          "body": "工具方法",
+          "index": 9,
+          "bold": false,
+          "path": "src/util.js",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "docs",
+      "body": "编辑目录结构的页面，也是web功能展示页面",
+      "index": 1,
+      "bold": false,
+      "path": "docs",
+      "children": [
+        {
+          "name": "edit-doc.js",
+          "body": "",
+          "index": 9,
+          "bold": false,
+          "path": "docs/edit-doc.js",
+          "children": []
+        },
+        {
+          "name": "index.html",
+          "body": "",
+          "index": 9,
+          "bold": false,
+          "path": "docs/index.html",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "images",
+      "body": "图片资源，主要是插件图标",
+      "index": 2,
+      "bold": false,
+      "path": "images",
+      "children": []
+    },
+    {
+      "name": "package.json",
+      "body": "vscode插件的入口文件",
+      "index": 2,
+      "bold": false,
+      "path": "package.json",
+      "children": []
+    },
+    {
+      "name": "nstree.json",
+      "body": "使用本插件自动生成的目录结构文件。",
+      "index": 3,
+      "bold": false,
+      "path": "nstree.json",
+      "children": []
+    },
+    {
+      "name": ".vscode",
+      "body": "插件开发时一些配置",
+      "index": 9,
+      "bold": false,
+      "path": ".vscode",
+      "children": []
+    },
+    {
+      "name": "CHANGELOG.md",
+      "body": "vscode插件更新日志",
+      "index": 9,
+      "bold": false,
+      "path": "CHANGELOG.md",
+      "children": []
+    },
+    {
+      "name": "README.md",
+      "body": "插件说明",
+      "index": 9,
+      "bold": false,
+      "path": "README.md",
+      "children": []
+    }
+  ]
+}
