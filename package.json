@@ -85,11 +85,11 @@
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nostar/vscode-nstree/issues"
+    "url": "https://github.com/nostarsnow/vscode-nstree/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nostar/vscode-nstree"
+    "url": "https://github.com/nostarsnow/vscode-nstree"
   },
-  "homepage": "https://github.com/nostar/vscode-nstree/blob/master/README.md"
+  "homepage": "https://github.com/nostarsnow/vscode-nstree/blob/master/README.md"
 }
